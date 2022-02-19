@@ -6,20 +6,20 @@ import (
 	"sync"
 )
 
-type block struct {
+type Block struct {
 	Data string
 	Hash string
 	PrevHash string
 }
 
-func (b *block) calculateHash() {
+func (b *Block) calculateHash() {
 	hash := sha256.Sum256([]byte(b.Data + b.PrevHash))
 	b.Hash = fmt.Sprintf("%x", hash)
 }
 
 type blockchain struct {
 	// blocks slice가 너무 커질 수 있으니 pointer만 저장하자!
-	blocks []*block
+	blocks []*Block
 }
 
 var b *blockchain
@@ -33,10 +33,10 @@ func getLastHash() string {
 	return totalBlocks[len(totalBlocks) - 1].Hash
 }
 
-func createBlock(data string) *block {
-	newBlock := block{data, "", getLastHash()}
+func createBlock(data string) *Block {
+	newBlock := Block{data, "", getLastHash()}
 	newBlock.calculateHash()
-	// blockchain = pointer slice이므로 new block 내보낼 때도 block pointer를 내보내야지
+	// blockchain = pointer slice이므로 new Block 내보낼 때도 Block pointer를 내보내야지
 	return &newBlock
 }
 
@@ -56,6 +56,6 @@ func (b *blockchain) AddBlock(data string) {
 	b.blocks = append(b.blocks, createBlock(data))
 } 
 
-func (b *blockchain) AllBlocks() []*block {
+func (b *blockchain) AllBlocks() []*Block {
 	return b.blocks
 }
