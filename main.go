@@ -1,10 +1,18 @@
 package main
 
-import "github.com/styu12/seungohcoin/explorer"
+import (
+	"github.com/styu12/seungohcoin/rest"
+)
 
 func main() {
-	explorer.Start()
+	rest.Start(4000)
 }
+
+// import "github.com/styu12/seungohcoin/explorer"
+
+// func main() {
+// 	explorer.Start()
+// }
 
 // func main() {
 // 	chain := blockchain.GetBlockchain()
