@@ -1,11 +1,9 @@
 package main
 
-import (
-	"github.com/styu12/seungohcoin/rest"
-)
+import "github.com/styu12/seungohcoin/cli"
 
 func main() {
-	rest.Start(4000)
+	cli.Start()
 }
 
 // import "github.com/styu12/seungohcoin/explorer"
