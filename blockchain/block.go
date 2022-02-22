@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 
 	"github.com/styu12/seungohcoin/db"
@@ -13,6 +14,10 @@ type Block struct {
 	Hash string `json:"hash"`
 	PrevHash string	`json:"prevHash,omitempty"`
 	Height int 	`json:"height"`
+}
+
+func (b *Block) restore(data []byte) {
+	utils.FromBytes(b, data)
 }
 
 func (b *Block) persist() {
@@ -32,3 +37,15 @@ func createBlock(data string, prevHash string, height int) *Block {
 	block.persist()
 	return block
 }  
+
+var ErrNotFound = errors.New("Block Not Found.")
+
+func FindBlock(hash string) (*Block, error) {
+	blockBytes := db.Block(hash)
+	if blockBytes == nil {
+		return nil, ErrNotFound
+	}
+	block := &Block{}
+	block.restore(blockBytes)
+	return block, nil
+}

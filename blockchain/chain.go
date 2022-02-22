@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/styu12/seungohcoin/db"
@@ -10,6 +11,10 @@ import (
 type blockchain struct {
 	NewestHash string `json:"newestHash"`
 	Height int `json:"height"`
+}
+
+func (b *blockchain) restore(data []byte) {
+	utils.FromBytes(b, data)
 }
 
 func (b *blockchain) persist() {
@@ -32,8 +37,16 @@ func Blockchain() *blockchain {
 		// 여러 개의 goRoutine이 동시에 첫 블록체인 생성을 요구할 수도 있으니 더욱 확실하게 한번만 실행!
 		once.Do(func() {
 			b = &blockchain{"", 0}
-			b.AddBlock("Genesis")
+			checkpoint := db.Checkpoint()
+			if checkpoint == nil {
+				fmt.Println("checkpoint is nil")
+				b.AddBlock("Genesis")
+			}	else {
+				b.restore(checkpoint)
+			}
 		})
 	}
+	fmt.Printf("Newest Hash : %s\n", b.NewestHash)
+	fmt.Printf("Height : %d\n", b.Height)
 	return b
 } 

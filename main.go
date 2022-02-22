@@ -2,10 +2,15 @@ package main
 
 import (
 	"github.com/styu12/seungohcoin/blockchain"
+	"github.com/styu12/seungohcoin/cli"
 )
 
 func main() {
 	blockchain.Blockchain()
+	cli.Start()
+	// blockchain.Blockchain().AddBlock("Second")
+	// blockchain.Blockchain().AddBlock("Third")
+	// blockchain.Blockchain().AddBlock("Fourth")
 }
 
 // import "github.com/styu12/seungohcoin/explorer"
