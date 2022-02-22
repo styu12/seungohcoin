@@ -1,9 +1,11 @@
 package main
 
-import "github.com/styu12/seungohcoin/cli"
+import (
+	"github.com/styu12/seungohcoin/blockchain"
+)
 
 func main() {
-	cli.Start()
+	blockchain.Blockchain()
 }
 
 // import "github.com/styu12/seungohcoin/explorer"
