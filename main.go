@@ -1,16 +1,13 @@
 package main
 
 import (
-	"github.com/styu12/seungohcoin/blockchain"
 	"github.com/styu12/seungohcoin/cli"
+	"github.com/styu12/seungohcoin/db"
 )
 
 func main() {
-	blockchain.Blockchain()
+	defer db.CloseDB()
 	cli.Start()
-	// blockchain.Blockchain().AddBlock("Second")
-	// blockchain.Blockchain().AddBlock("Third")
-	// blockchain.Blockchain().AddBlock("Fourth")
 }
 
 // import "github.com/styu12/seungohcoin/explorer"

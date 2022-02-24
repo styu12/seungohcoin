@@ -65,8 +65,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func allBlocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		return 
-		// json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
 	case "POST":
 		var addBlockBody addBlockBody
 		utils.HandleError(json.NewDecoder(r.Body).Decode(&addBlockBody))

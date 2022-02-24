@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/styu12/seungohcoin/explorer"
 	"github.com/styu12/seungohcoin/rest"
@@ -14,7 +15,7 @@ func usage() {
 	fmt.Printf("Please use the following flags: \n\n")
 	fmt.Printf("-port:   Set port of the server.\n")
 	fmt.Printf("-mode:   Choose between 'rest' and 'html'\n")
-	os.Exit(0)
+	runtime.Goexit()
 }
 
 

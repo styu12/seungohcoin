@@ -18,7 +18,7 @@ func (b *blockchain) restore(data []byte) {
 }
 
 func (b *blockchain) persist() {
-	db.SaveBlockchain(utils.ToBytes(b))
+	db.SaveCheckpoint(utils.ToBytes(b))
 }
 
 var b *blockchain
@@ -29,6 +29,21 @@ func (b *blockchain) AddBlock(data string) {
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.persist()
+}
+
+func (b *blockchain) Blocks() []*Block {
+	var blocks []*Block
+	hashCursor := b.NewestHash
+	for {
+		block, _ := FindBlock(hashCursor)
+		blocks = append(blocks, block)
+		if block.PrevHash != "" {
+			hashCursor = block.PrevHash
+		}	else {
+			break
+		}
+	}
+	return blocks
 }
 
 // b를 대신 내보내는 함수
@@ -46,7 +61,5 @@ func Blockchain() *blockchain {
 			}
 		})
 	}
-	fmt.Printf("Newest Hash : %s\n", b.NewestHash)
-	fmt.Printf("Height : %d\n", b.Height)
 	return b
 } 
