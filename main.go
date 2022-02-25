@@ -8,6 +8,7 @@ import (
 func main() {
 	defer db.CloseDB()
 	cli.Start()
+	
 }
 
 // import "github.com/styu12/seungohcoin/explorer"

@@ -8,9 +8,39 @@ import (
 	"github.com/styu12/seungohcoin/utils"
 )
 
+const (
+	defaultDifficulty int = 2
+	difficultyInterval int = 5
+	blockInterval int = 2
+	allowedRange int = 2
+)
+
 type blockchain struct {
 	NewestHash string `json:"newestHash"`
 	Height int `json:"height"`
+	CurrentDifficulty int `json:"currentDifficulty"`
+}
+
+func (b *blockchain) recalculateDifficulty() {
+	blocks := b.Blocks()
+	newestBlock := blocks[0]
+	pointerBlock := blocks[difficultyInterval - 1]
+	actualTime := (newestBlock.Timestamp/60) - (pointerBlock.Timestamp/60)
+	expectedTime := difficultyInterval * blockInterval
+	if actualTime < (expectedTime - allowedRange) {
+		b.CurrentDifficulty++
+	}	else if actualTime > (expectedTime - allowedRange) {
+		b.CurrentDifficulty--
+	}
+}
+
+func (b *blockchain) difficulty() int {
+	if b.Height == 0 {
+		b.CurrentDifficulty = defaultDifficulty
+	}	else if b.Height % difficultyInterval == 0 {
+		b.recalculateDifficulty()
+	}
+	return b.CurrentDifficulty
 }
 
 func (b *blockchain) restore(data []byte) {
@@ -51,7 +81,9 @@ func Blockchain() *blockchain {
 	if b == nil {
 		// 여러 개의 goRoutine이 동시에 첫 블록체인 생성을 요구할 수도 있으니 더욱 확실하게 한번만 실행!
 		once.Do(func() {
-			b = &blockchain{"", 0}
+			b = &blockchain{
+				Height: 0,
+			}
 			checkpoint := db.Checkpoint()
 			if checkpoint == nil {
 				fmt.Println("checkpoint is nil")

@@ -1,9 +1,10 @@
 package blockchain
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/styu12/seungohcoin/db"
 	"github.com/styu12/seungohcoin/utils"
@@ -14,6 +15,25 @@ type Block struct {
 	Hash string `json:"hash"`
 	PrevHash string	`json:"prevHash,omitempty"`
 	Height int 	`json:"height"`
+	Difficulty int	`json:"difficulty"`
+	Nonce int	`json:"nonce"`
+	Timestamp int `json:"timestamp"`
+}
+
+func (b *Block) mine() {
+	target := strings.Repeat("0", b.Difficulty)
+	for {
+		hash := utils.Hash(b)
+		fmt.Printf("\n\n\nTarget: %s\nHash: %s\nNonce: %d\n\n\n", target, hash, b.Nonce)
+		if strings.HasPrefix(hash, target) {
+			b.Timestamp = int(time.Now().Unix())
+			b.Hash = hash
+			break
+		}	else {
+			b.Nonce++
+		}
+	}
+	
 }
 
 func (b *Block) restore(data []byte) {
@@ -30,10 +50,11 @@ func createBlock(data string, prevHash string, height int) *Block {
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
+		Difficulty: b.difficulty(),
+		Nonce: 0,
+		Timestamp: 0,
 	}
-	payload := block.Data + block.PrevHash + fmt.Sprint(block.Height)
-	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))
-	block.Hash = hash
+	block.mine()
 	block.persist()
 	return block
 }  
