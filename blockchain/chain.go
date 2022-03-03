@@ -21,6 +21,37 @@ type blockchain struct {
 	CurrentDifficulty int `json:"currentDifficulty"`
 }
 
+func (b *blockchain) txOuts() []*TxOut {
+	var txOuts []*TxOut
+	blocks := b.Blocks()
+	for _, block := range blocks {
+		for _, tx := range block.Transactions {
+			txOuts = append(txOuts, tx.TxOuts...)
+		}
+	}
+	return txOuts
+}
+
+func (b *blockchain) TxOutsByAddress(address string) []*TxOut {
+	var ownedTxOuts []*TxOut
+	txOuts := b.txOuts()
+	for _, txOut := range txOuts {
+		if txOut.Owner == address {
+			ownedTxOuts = append(ownedTxOuts, txOut)
+		}
+	}
+	return ownedTxOuts
+}
+
+func (b *blockchain) BalanceByAddress(address string) int {
+	total := 0
+	txOuts := b.TxOutsByAddress(address)
+	for _, txOut := range txOuts {
+		total += txOut.Amount
+	}
+	return total
+}
+
 func (b *blockchain) recalculateDifficulty() {
 	blocks := b.Blocks()
 	newestBlock := blocks[0]
@@ -54,8 +85,8 @@ func (b *blockchain) persist() {
 var b *blockchain
 var once sync.Once
 
-func (b *blockchain) AddBlock(data string) {
-	block := createBlock(data, b.NewestHash, b.Height + 1)
+func (b *blockchain) AddBlock() {
+	block := createBlock(b.NewestHash, b.Height + 1)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	b.persist()
@@ -87,7 +118,7 @@ func Blockchain() *blockchain {
 			checkpoint := db.Checkpoint()
 			if checkpoint == nil {
 				fmt.Println("checkpoint is nil")
-				b.AddBlock("Genesis")
+				b.AddBlock()
 			}	else {
 				b.restore(checkpoint)
 			}

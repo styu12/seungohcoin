@@ -11,13 +11,13 @@ import (
 )
 
 type Block struct {
-	Data string	`json:"data"`
 	Hash string `json:"hash"`
 	PrevHash string	`json:"prevHash,omitempty"`
 	Height int 	`json:"height"`
 	Difficulty int	`json:"difficulty"`
 	Nonce int	`json:"nonce"`
 	Timestamp int `json:"timestamp"`
+	Transactions []*Tx	`json:"transactions"`
 }
 
 func (b *Block) mine() {
@@ -44,21 +44,20 @@ func (b *Block) persist() {
 	db.SaveBlock(b.Hash, utils.ToBytes(b))	
 }
 
-func createBlock(data string, prevHash string, height int) *Block {
+func createBlock(prevHash string, height int) *Block {
 	block := &Block{
-		Data: data,
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
 		Difficulty: b.difficulty(),
 		Nonce: 0,
 		Timestamp: 0,
+		Transactions: []*Tx{makeCoinbaseTx("Seungoh")},
 	}
 	block.mine()
 	block.persist()
 	return block
 }  
-
 var ErrNotFound = errors.New("Block Not Found.")
 
 func FindBlock(hash string) (*Block, error) {
