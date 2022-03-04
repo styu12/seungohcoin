@@ -52,9 +52,9 @@ func createBlock(prevHash string, height int) *Block {
 		Difficulty: b.difficulty(),
 		Nonce: 0,
 		Timestamp: 0,
-		Transactions: []*Tx{makeCoinbaseTx("Seungoh")},
 	}
 	block.mine()
+	block.Transactions = Mempool.TxToConfirm()
 	block.persist()
 	return block
 }  

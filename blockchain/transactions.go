@@ -55,6 +55,7 @@ func makeCoinbaseTx(address string) *Tx {
 	return &tx
 }
 
+
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if Blockchain().BalanceByAddress(from) < amount {
 		return nil, errors.New("Not Enough Money.")
@@ -95,4 +96,12 @@ func (m *mempool) AddTx(to string, amount int) error {
 	}
 	m.Txs = append(m.Txs, newTx)
 	return err
+}
+
+func (m *mempool) TxToConfirm() []*Tx {
+	txs := m.Txs
+	coinbase := makeCoinbaseTx("Seungoh")
+	txs = append(txs, coinbase)
+	m.Txs = nil
+	return txs
 }
