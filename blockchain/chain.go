@@ -32,20 +32,34 @@ func (b *blockchain) txOuts() []*TxOut {
 	return txOuts
 }
 
-func (b *blockchain) TxOutsByAddress(address string) []*TxOut {
-	var ownedTxOuts []*TxOut
-	txOuts := b.txOuts()
-	for _, txOut := range txOuts {
-		if txOut.Owner == address {
-			ownedTxOuts = append(ownedTxOuts, txOut)
+func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
+	var uTxOuts []*UTxOut
+	// dictionary 만드는 법 {string : bool, string : bool, ...}
+	creatorTxs := make(map[string]bool)
+
+	for _, block := range b.Blocks() {
+		for _, tx := range block.Transactions {
+			for _, input := range tx.TxIns {
+				if input.Owner == address {
+					creatorTxs[input.TxId] = true
+				}
+			}
+
+			for index, output := range tx.TxOuts {
+				if output.Owner == address {
+					if _, ok := creatorTxs[tx.Id]; !ok {
+						uTxOuts = append(uTxOuts, &UTxOut{tx.Id, index, output.Amount})
+					}
+				}
+			}
 		}
 	}
-	return ownedTxOuts
+	return uTxOuts
 }
 
 func (b *blockchain) BalanceByAddress(address string) int {
 	total := 0
-	txOuts := b.TxOutsByAddress(address)
+	txOuts := b.UTxOutsByAddress(address)
 	for _, txOut := range txOuts {
 		total += txOut.Amount
 	}
