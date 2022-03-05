@@ -21,23 +21,27 @@ type blockchain struct {
 	CurrentDifficulty int `json:"currentDifficulty"`
 }
 
-func (b *blockchain) txOuts() []*TxOut {
-	var txOuts []*TxOut
-	blocks := b.Blocks()
-	for _, block := range blocks {
-		for _, tx := range block.Transactions {
-			txOuts = append(txOuts, tx.TxOuts...)
-		}
-	}
-	return txOuts
+var b *blockchain
+var once sync.Once
+
+
+func (b *blockchain) restore(data []byte) {
+	utils.FromBytes(b, data)
 }
 
-func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
+func (b *blockchain) AddBlock() {
+	block := createBlock(b.NewestHash, b.Height + 1)
+	b.NewestHash = block.Hash
+	b.Height = block.Height
+	persistBlockchain(b)
+}
+
+func UTxOutsByAddress(address string,b *blockchain) []*UTxOut {
 	var uTxOuts []*UTxOut
 	// dictionary 만드는 법 {string : bool, string : bool, ...}
 	creatorTxs := make(map[string]bool)
 
-	for _, block := range b.Blocks() {
+	for _, block := range Blocks(b) {
 		for _, tx := range block.Transactions {
 			for _, input := range tx.TxIns {
 				if input.Owner == address {
@@ -48,7 +52,10 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
 			for index, output := range tx.TxOuts {
 				if output.Owner == address {
 					if _, ok := creatorTxs[tx.Id]; !ok {
-						uTxOuts = append(uTxOuts, &UTxOut{tx.Id, index, output.Amount})
+						uTxOut := &UTxOut{tx.Id, index, output.Amount}
+						if !isOnMempool(uTxOut) {
+							uTxOuts = append(uTxOuts, uTxOut)
+						}
 					}
 				}
 			}
@@ -57,56 +64,44 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut {
 	return uTxOuts
 }
 
-func (b *blockchain) BalanceByAddress(address string) int {
+func BalanceByAddress(address string, b *blockchain) int {
 	total := 0
-	txOuts := b.UTxOutsByAddress(address)
+	txOuts := UTxOutsByAddress(address, b)
 	for _, txOut := range txOuts {
 		total += txOut.Amount
 	}
 	return total
 }
 
-func (b *blockchain) recalculateDifficulty() {
-	blocks := b.Blocks()
+func recalculateDifficulty(b *blockchain) int {
+	blocks := Blocks(b)
 	newestBlock := blocks[0]
 	pointerBlock := blocks[difficultyInterval - 1]
 	actualTime := (newestBlock.Timestamp/60) - (pointerBlock.Timestamp/60)
 	expectedTime := difficultyInterval * blockInterval
 	if actualTime < (expectedTime - allowedRange) {
-		b.CurrentDifficulty++
+		return b.CurrentDifficulty + 1
 	}	else if actualTime > (expectedTime - allowedRange) {
-		b.CurrentDifficulty--
+		return b.CurrentDifficulty - 1
 	}
+	return b.CurrentDifficulty 
 }
 
-func (b *blockchain) difficulty() int {
+func difficulty(b *blockchain) int {
 	if b.Height == 0 {
-		b.CurrentDifficulty = defaultDifficulty
+		return defaultDifficulty
 	}	else if b.Height % difficultyInterval == 0 {
-		b.recalculateDifficulty()
+		return recalculateDifficulty(b)
+	}	else {
+		return b.CurrentDifficulty
 	}
-	return b.CurrentDifficulty
 }
 
-func (b *blockchain) restore(data []byte) {
-	utils.FromBytes(b, data)
-}
-
-func (b *blockchain) persist() {
+func persistBlockchain(b *blockchain) {
 	db.SaveCheckpoint(utils.ToBytes(b))
 }
 
-var b *blockchain
-var once sync.Once
-
-func (b *blockchain) AddBlock() {
-	block := createBlock(b.NewestHash, b.Height + 1)
-	b.NewestHash = block.Hash
-	b.Height = block.Height
-	b.persist()
-}
-
-func (b *blockchain) Blocks() []*Block {
+func Blocks(b *blockchain) []*Block {
 	var blocks []*Block
 	hashCursor := b.NewestHash
 	for {

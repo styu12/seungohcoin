@@ -49,7 +49,7 @@ func createBlock(prevHash string, height int) *Block {
 		Hash: "",
 		PrevHash: prevHash,
 		Height: height,
-		Difficulty: b.difficulty(),
+		Difficulty: difficulty(b),
 		Nonce: 0,
 		Timestamp: 0,
 	}
