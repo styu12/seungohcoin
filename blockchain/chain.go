@@ -118,20 +118,17 @@ func Blocks(b *blockchain) []*Block {
 
 // b를 대신 내보내는 함수
 func Blockchain() *blockchain {
-	if b == nil {
-		// 여러 개의 goRoutine이 동시에 첫 블록체인 생성을 요구할 수도 있으니 더욱 확실하게 한번만 실행!
-		once.Do(func() {
-			b = &blockchain{
-				Height: 0,
-			}
-			checkpoint := db.Checkpoint()
-			if checkpoint == nil {
-				fmt.Println("checkpoint is nil")
-				b.AddBlock()
-			}	else {
-				b.restore(checkpoint)
-			}
-		})
-	}
+	once.Do(func() {
+		b = &blockchain{
+			Height: 0,
+		}
+		checkpoint := db.Checkpoint()
+		if checkpoint == nil {
+			fmt.Println("checkpoint is nil")
+			b.AddBlock()
+		}	else {
+			b.restore(checkpoint)
+		}
+	})
 	return b
 } 

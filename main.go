@@ -1,15 +1,18 @@
 package main
 
 import (
-	"github.com/styu12/seungohcoin/cli"
-	"github.com/styu12/seungohcoin/db"
+	"github.com/styu12/seungohcoin/wallet"
 )
 
 func main() {
-	defer db.CloseDB()
-	cli.Start()
-	
+	wallet.Start()
 }
+
+// func main() {
+// 	defer db.CloseDB()
+// 	cli.Start()
+	
+// }
 
 // import "github.com/styu12/seungohcoin/explorer"
 
