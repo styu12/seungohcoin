@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"os"
 
 	"github.com/styu12/seungohcoin/utils"
@@ -62,6 +63,35 @@ func sign(payload string, w *wallet) string {
 	utils.HandleError(err)
 	signature := append(r.Bytes(), s.Bytes()...)
 	return fmt.Sprintf("%x", signature)
+}
+
+func restoreBigInts(hexString string) (*big.Int, *big.Int, error) {
+	hexAsBytes, err := hex.DecodeString(hexString)
+	if err != nil {
+		return nil, nil, err
+	}
+	firstHalfBytes := hexAsBytes[:len(hexAsBytes)/2]
+	secondHalfBytes := hexAsBytes[len(hexAsBytes)/2:]
+	bigA, bigB := big.Int{}, big.Int{}
+	bigA.SetBytes(firstHalfBytes)
+	bigB.SetBytes(secondHalfBytes)
+	return &bigA, &bigB, nil
+}
+
+func verify(signature, payload, address string) bool {
+	r, s, err := restoreBigInts(signature)
+	utils.HandleError(err)
+	x, y, err := restoreBigInts(address)
+	utils.HandleError(err)
+	payloadAsBytes, err := hex.DecodeString(payload)
+	utils.HandleError(err)
+	publicKey := ecdsa.PublicKey {
+		Curve: elliptic.P256(),
+		X: x,
+		Y: y,
+	}
+	ok := ecdsa.Verify(&publicKey, payloadAsBytes, r, s)
+	return ok
 }
 
 
