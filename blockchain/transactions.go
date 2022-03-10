@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/styu12/seungohcoin/utils"
+	"github.com/styu12/seungohcoin/wallet"
 )
 
 const (
@@ -112,7 +113,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 }
 
 func (m *mempool) AddTx(to string, amount int) error {
-	newTx, err := makeTx("Seungoh", to, amount)
+	newTx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -122,7 +123,7 @@ func (m *mempool) AddTx(to string, amount int) error {
 
 func (m *mempool) TxToConfirm() []*Tx {
 	txs := m.Txs
-	coinbase := makeCoinbaseTx("Seungoh")
+	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 	txs = append(txs, coinbase)
 	m.Txs = nil
 	return txs
